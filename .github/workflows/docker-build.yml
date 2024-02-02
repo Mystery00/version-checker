@@ -30,4 +30,4 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:${{input.tag}}
+          tags: ${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:${{ inputs.tag }}
