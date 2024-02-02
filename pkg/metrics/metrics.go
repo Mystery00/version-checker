@@ -46,7 +46,7 @@ func New(log *logrus.Entry) *Metrics {
 			Help:      "Where the container in use is using the latest upstream registry version",
 		},
 		[]string{
-			"namespace", "pod", "container", "container_type", "image", "current_version", "latest_version",
+			"namespace", "pod", "container", "container_type", "image", "current_version", "current_version_pure", "latest_version", "latest_version_pure",
 		},
 	)
 
