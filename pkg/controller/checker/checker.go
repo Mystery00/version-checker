@@ -70,11 +70,12 @@ func (c *Checker) Container(ctx context.Context, log *logrus.Entry,
 	}
 
 	currentImage := semver.Parse(currentTag)
-	latestImage, isLatest, err := c.isLatestSemver(ctx, imageURL, statusSHA, currentImage, opts)
+	latestImage, latestTag, isLatest, err := c.isLatestSemver(ctx, imageURL, statusSHA, currentImage, opts)
 	if err != nil {
 		return nil, err
 	}
 
+	currentVersion := currentTag
 	latestVersion := latestImage.Tag
 
 	// If we are using SHA and tag, make latest version include both
@@ -84,14 +85,14 @@ func (c *Checker) Container(ctx context.Context, log *logrus.Entry,
 
 	// If latest version contains SHA, include in current version
 	if strings.Contains(latestVersion, "@") {
-		currentTag = fmt.Sprintf("%s@%s", currentTag, statusSHA)
+		currentVersion = fmt.Sprintf("%s@%s", currentVersion, statusSHA)
 	}
 
 	return &Result{
-		CurrentVersion:     currentTag,
+		CurrentVersion:     currentVersion,
 		CurrentVersionPure: currentTag,
 		LatestVersion:      latestVersion,
-		LatestVersionPure:  latestImage.Tag,
+		LatestVersionPure:  latestTag,
 		IsLatest:           isLatest,
 		ImageURL:           imageURL,
 	}, nil
@@ -135,10 +136,10 @@ func (c *Checker) isLatestOrEmptyTag(tag string) bool {
 }
 
 // isLatestSemver will return the latest image, and whether the given image is the latest
-func (c *Checker) isLatestSemver(ctx context.Context, imageURL, currentSHA string, currentImage *semver.SemVer, opts *api.Options) (*api.ImageTag, bool, error) {
+func (c *Checker) isLatestSemver(ctx context.Context, imageURL, currentSHA string, currentImage *semver.SemVer, opts *api.Options) (*api.ImageTag, string, bool, error) {
 	latestImage, err := c.search.LatestImage(ctx, imageURL, opts)
 	if err != nil {
-		return nil, false, err
+		return nil, "", false, err
 	}
 
 	latestImageV := semver.Parse(latestImage.Tag)
@@ -152,12 +153,13 @@ func (c *Checker) isLatestSemver(ctx context.Context, imageURL, currentSHA strin
 
 	// If using the same image version, but the SHA has been updated upstream,
 	// make not latest
+	latestTag := latestImage.Tag
 	if currentImage.Equal(latestImageV) && currentSHA != latestImage.SHA {
 		isLatest = false
 		latestImage.Tag = fmt.Sprintf("%s@%s", latestImage.Tag, latestImage.SHA)
 	}
 
-	return latestImage, isLatest, nil
+	return latestImage, latestTag, isLatest, nil
 }
 
 // isLatestSHA will return the the result of whether the given image is the latest, according to image SHA

@@ -460,7 +460,7 @@ func TestIsLatestSemver(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			checker := New(search.New().With(test.searchResp, nil))
-			latestImage, isLatest, err := checker.isLatestSemver(context.TODO(), test.imageURL, test.currentSHA, test.currentImage, nil)
+			latestImage, _, isLatest, err := checker.isLatestSemver(context.TODO(), test.imageURL, test.currentSHA, test.currentImage, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
