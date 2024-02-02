@@ -87,10 +87,10 @@ func (c *Controller) checkContainer(ctx context.Context, log *logrus.Entry, pod 
 
 	if result.IsLatest {
 		log.Debugf("image is latest %s:%s",
-			result.ImageURL, result.CurrentVersion)
+			result.ImageURL, result.CurrentVersionPure)
 	} else {
 		log.Debugf("image is not latest %s: %s -> %s",
-			result.ImageURL, result.CurrentVersion, result.LatestVersion)
+			result.ImageURL, result.CurrentVersionPure, result.LatestVersionPure)
 	}
 
 	c.metrics.AddImage(pod.Namespace, pod.Name,
