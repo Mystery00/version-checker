@@ -31,9 +31,11 @@ type Metrics struct {
 }
 
 type cacheItem struct {
-	image          string
-	currentVersion string
-	latestVersion  string
+	image              string
+	currentVersion     string
+	currentVersionPure string
+	latestVersion      string
+	latestVersionPure  string
 }
 
 func New(log *logrus.Entry) *Metrics {
@@ -91,7 +93,7 @@ func (m *Metrics) Run(servingAddress string) error {
 	return nil
 }
 
-func (m *Metrics) AddImage(namespace, pod, container, containerType, imageURL string, isLatest bool, currentVersion, latestVersion string) {
+func (m *Metrics) AddImage(namespace, pod, container, containerType, imageURL string, isLatest bool, currentVersion, currentVersionPure, latestVersion, latestVersionPure string) {
 	// Remove old image url/version if it exists
 	m.RemoveImage(namespace, pod, container, containerType)
 
@@ -104,14 +106,16 @@ func (m *Metrics) AddImage(namespace, pod, container, containerType, imageURL st
 	}
 
 	m.containerImageVersion.With(
-		m.buildLabels(namespace, pod, container, containerType, imageURL, currentVersion, latestVersion),
+		m.buildLabels(namespace, pod, container, containerType, imageURL, currentVersion, currentVersionPure, latestVersion, latestVersionPure),
 	).Set(isLatestF)
 
 	index := m.latestImageIndex(namespace, pod, container)
 	m.containerCache[index] = cacheItem{
-		image:          imageURL,
-		currentVersion: currentVersion,
-		latestVersion:  latestVersion,
+		image:              imageURL,
+		currentVersion:     currentVersion,
+		currentVersionPure: currentVersionPure,
+		latestVersion:      latestVersion,
+		latestVersionPure:  latestVersionPure,
 	}
 }
 
@@ -126,7 +130,7 @@ func (m *Metrics) RemoveImage(namespace, pod, container, containerType string) {
 	}
 
 	m.containerImageVersion.Delete(
-		m.buildLabels(namespace, pod, container, containerType, item.image, item.currentVersion, item.latestVersion),
+		m.buildLabels(namespace, pod, container, containerType, item.image, item.currentVersion, item.currentVersionPure, item.latestVersion, item.latestVersionPure),
 	)
 	delete(m.containerCache, index)
 }
@@ -135,15 +139,17 @@ func (m *Metrics) latestImageIndex(namespace, pod, container string) string {
 	return strings.Join([]string{namespace, pod, container}, "")
 }
 
-func (m *Metrics) buildLabels(namespace, pod, container, containerType, imageURL, currentVersion, latestVersion string) prometheus.Labels {
+func (m *Metrics) buildLabels(namespace, pod, container, containerType, imageURL, currentVersion, currentVersionPure, latestVersion, latestVersionPure string) prometheus.Labels {
 	return prometheus.Labels{
-		"namespace":       namespace,
-		"pod":             pod,
-		"container_type":  containerType,
-		"container":       container,
-		"image":           imageURL,
-		"current_version": currentVersion,
-		"latest_version":  latestVersion,
+		"namespace":            namespace,
+		"pod":                  pod,
+		"container_type":       containerType,
+		"container":            container,
+		"image":                imageURL,
+		"current_version":      currentVersion,
+		"current_version_pure": currentVersionPure,
+		"latest_version":       latestVersion,
+		"latest_version_pure":  latestVersionPure,
 	}
 }
 

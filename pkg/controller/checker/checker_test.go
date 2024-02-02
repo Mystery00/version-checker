@@ -515,7 +515,7 @@ func TestIsLatestSHA(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			checker := New(search.New().With(test.searchResp, nil))
-			result, err := checker.isLatestSHA(context.TODO(), test.imageURL, test.currentSHA, nil)
+			result, err := checker.isLatestSHA(context.TODO(), test.imageURL, "", test.currentSHA, nil)
 			if err != nil {
 				t.Fatal(err)
 			}

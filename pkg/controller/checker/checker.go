@@ -18,10 +18,12 @@ type Checker struct {
 }
 
 type Result struct {
-	CurrentVersion string
-	LatestVersion  string
-	IsLatest       bool
-	ImageURL       string
+	CurrentVersion     string
+	LatestVersion      string
+	CurrentVersionPure string
+	LatestVersionPure  string
+	IsLatest           bool
+	ImageURL           string
 }
 
 func New(search search.Searcher) *Checker {
@@ -55,7 +57,7 @@ func (c *Checker) Container(ctx context.Context, log *logrus.Entry,
 	}
 
 	if opts.UseSHA {
-		result, err := c.isLatestSHA(ctx, imageURL, statusSHA, opts)
+		result, err := c.isLatestSHA(ctx, imageURL, currentTag, statusSHA, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -86,10 +88,12 @@ func (c *Checker) Container(ctx context.Context, log *logrus.Entry,
 	}
 
 	return &Result{
-		CurrentVersion: currentTag,
-		LatestVersion:  latestVersion,
-		IsLatest:       isLatest,
-		ImageURL:       imageURL,
+		CurrentVersion:     currentTag,
+		CurrentVersionPure: currentTag,
+		LatestVersion:      latestVersion,
+		LatestVersionPure:  latestImage.Tag,
+		IsLatest:           isLatest,
+		ImageURL:           imageURL,
 	}, nil
 }
 
@@ -157,7 +161,7 @@ func (c *Checker) isLatestSemver(ctx context.Context, imageURL, currentSHA strin
 }
 
 // isLatestSHA will return the the result of whether the given image is the latest, according to image SHA
-func (c *Checker) isLatestSHA(ctx context.Context, imageURL, currentSHA string, opts *api.Options) (*Result, error) {
+func (c *Checker) isLatestSHA(ctx context.Context, imageURL, currentTag, currentSHA string, opts *api.Options) (*Result, error) {
 	latestImage, err := c.search.LatestImage(ctx, imageURL, opts)
 	if err != nil {
 		return nil, err
@@ -170,10 +174,12 @@ func (c *Checker) isLatestSHA(ctx context.Context, imageURL, currentSHA string, 
 	}
 
 	return &Result{
-		CurrentVersion: currentSHA,
-		LatestVersion:  latestVersion,
-		IsLatest:       isLatest,
-		ImageURL:       imageURL,
+		CurrentVersion:     currentSHA,
+		CurrentVersionPure: currentTag,
+		LatestVersion:      latestVersion,
+		LatestVersionPure:  latestImage.Tag,
+		IsLatest:           isLatest,
+		ImageURL:           imageURL,
 	}, nil
 }
 
